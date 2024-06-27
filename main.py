@@ -63,6 +63,7 @@ def show_post(post_id):
 # Below is the code from previous lessons. No changes needed.
 @app.route("/about")
 def about():
+    date = datetime.ditetime().now()
     return render_template("about.html")
 
 
