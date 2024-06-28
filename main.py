@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -37,6 +37,17 @@ class BlogPost(db.Model):
 with app.app_context():
     db.create_all()
 
+ckeditor = CKEditor(app)
+
+class NewPost(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    subtitle = StringField('Subtitle', validators=[DataRequired()])
+    author = StringField('Author', validators=[DataRequired()])
+    img_url = StringField('Image URL', validators=[DataRequired(), URL()])
+    body = CKEditorField('Content', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
 
 @app.route('/')
 def get_all_posts():
@@ -72,14 +83,19 @@ def add_new_post():
         return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form)
 
-# TODO: edit_post() to change an existing blog post
+        
 
+# TODO: edit_post() to change an existing blog post
+@app.route('/edit-post/<post_id>', methods=['POST', 'GET'])
+def edit_post(post_id):
+    post = db.get_or_404(BlogPost, post_id)
+    edit_form = NewPost()
+    return render_template("make-post.html", form=edit_form, is_edit=True)
 # TODO: delete_post() to remove a blog post from the database
 
 # Below is the code from previous lessons. No changes needed.
 @app.route("/about")
 def about():
-    date = datetime.ditetime().now()
     return render_template("about.html")
 
 
