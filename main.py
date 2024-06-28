@@ -55,6 +55,22 @@ def show_post(post_id):
 
 
 # TODO: add_new_post() to create a new blog post
+@app.route('/new-post', methods=['GET', 'POST'])
+def add_new_post():
+    form = NewPost()
+    if form.validate_on_submit():
+        new_post = BlogPost(
+            title=form.title.data,
+            subtitle=form.subtitle.data,
+            body=form.body.data,
+            img_url=form.img_url.data,
+            author=form.author.data,
+            date=date.today().strftime("%B %d, %Y")
+        )
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect(url_for("get_all_posts"))
+    return render_template("make-post.html", form=form)
 
 # TODO: edit_post() to change an existing blog post
 
