@@ -25,6 +25,7 @@ db.init_app(app)
 
 # CONFIGURE TABLE
 class BlogPost(db.Model):
+    id = mapped_column()
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
@@ -66,7 +67,7 @@ def show_post(post_id):
 
 
 # TODO: add_new_post() to create a new blog post
-@app.route('/new-post', methods=['GET', 'POST'])
+@app.route("/new-post", methods=["GET", "POST"])
 def add_new_post():
     form = NewPost()
     if form.validate_on_submit():
@@ -82,21 +83,45 @@ def add_new_post():
         db.session.commit()
         return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form)
-
         
 
 # TODO: edit_post() to change an existing blog post
-@app.route('/edit-post/<post_id>', methods=['POST', 'GET'])
+@app.route('/edit-post/<int:post_id>', methods=['POST', 'GET'])
 def edit_post(post_id):
     post = db.get_or_404(BlogPost, post_id)
-    edit_form = NewPost()
-    return render_template("make-post.html", form=edit_form, is_edit=True)
+    form = NewPost(obj=post)
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.subtitle = form.subtitle.data
+        post.author = form.author.data
+        post.img_url = form.img_url.data
+        post.body = form.body.data
+        db.session.commit()
+        return redirect(url_for('show_post', post_id=post.id))
+    return render_template('make-post.html', form=form, is_edit=True, post=post)
+
+   
+    
 # TODO: delete_post() to remove a blog post from the database
+@app.route('/delete/<post_id>')
+def delete_post(post_id):
+    post_to_delet = db.get_or_404(BlogPost, post_id)
+    db.session.delete(post_to_delet)
+    db.session.commit()
+    return redirect(url_for('get_all_posts'))
+
+# confirming deleting post added but not functional now, i will work on it later on 
+@app.route('/confirm-delete/<int:post_id>', methods=['GET'])
+def confirm_delete(post_id):
+    post = db.get_or_404(BlogPost, post_id)
+    return render_template('confirm_delete.html', post=post)
+
 
 # Below is the code from previous lessons. No changes needed.
 @app.route("/about")
 def about():
     return render_template("about.html")
+
 
 
 @app.route("/contact")
